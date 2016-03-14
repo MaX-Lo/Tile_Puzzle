@@ -6,6 +6,7 @@ import Constants as const
 
 # created by MaX-Lo
 # on 14.03.2016
+from Scoreboard import Scoreboard
 
 
 def main():
@@ -138,11 +139,6 @@ def game(screen):
                 if event.key == K_ESCAPE:
                     running = False
 
-        # Debug info: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,0]] would be the goal for a 4x4 field
-        if test_winning(field):
-            print "VICTORY!!!"
-            running = False
-
         board.fill(const.LT_GREY)
         for i in range(const.SIZE):
             for j in range(const.SIZE):
@@ -155,6 +151,12 @@ def game(screen):
                     textpos = mytext.get_rect(centerx=i * 100 + 50, centery=j * 100 + 50)
                     board.blit(mytext, textpos)
 
+        # Debug info: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,0]] would be the goal for a 4x4 field
+        if test_winning(field):
+            print "VICTORY!!!"
+            show_winning_screen(screen, board)
+            running = False
+
         screen.fill(const.GREY)
         board_x = (screen.get_width()-board.get_width())/2
         show_steps(screen, steps, (board_x, 20))
@@ -162,6 +164,10 @@ def game(screen):
         show_time(screen, time, (board_x, 50))
 
         refresh_screen(screen, board)
+
+    # Game Over
+    scoreboard = Scoreboard(screen)
+    scoreboard.add("", steps, 0, time)
 
 
 def refresh_screen(screen, board):
@@ -183,6 +189,35 @@ def show_time(screen, time, (x, y)):
     textpos = text.get_rect(x=x, y=y)
     screen.blit(text, textpos)
 
+
+def show_winning_screen(screen, board):
+    clock = pygame.time.Clock()
+    i = 2
+    running = True
+    while running:
+        clock.tick(30)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                running = False
+            elif event.type == KEYUP:
+                if event.key == K_ESCAPE:
+                    running = False
+
+        # refresh solved puzzle
+        board_x = (screen.get_width()-board.get_width())/2
+        screen.blit(board, (board_x, 100))
+
+        # draw "Solved" caption
+        font = pygame.font.Font(None, 200)
+        text = font.render("Solved", 1, const.GREEN)
+        print screen.get_width()
+        textpos = text.get_rect(centerx=screen.get_width()/2, centery=screen.get_height()/2)
+        screen.blit(text, textpos)
+
+        # TODO implement something like a firework
+
+        # refresh Screen
+        pygame.display.flip()
 
 def create_game_field():
     """
