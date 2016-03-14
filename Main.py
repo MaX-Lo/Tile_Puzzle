@@ -4,12 +4,16 @@ from pygame.locals import *
 
 import Constants as const
 
+# created by MaX-Lo
+# on 14.03.2016
+
 
 def main():
     """
     init screen and pygame
     """
-    screen = pygame.display.set_mode((450, 450))
+    screen = pygame.display.set_mode((450, 550))
+    pygame.display.set_caption("Tile Puzzle")
     pygame.init()
 
     menu(screen)
@@ -21,7 +25,7 @@ def menu(screen):
     # creating the menu background
     menu_bg = pygame.Surface(screen.get_size())
     menu_bg = menu_bg.convert()
-    menu_bg.fill((100, 100, 100))
+    menu_bg.fill(const.GREY)
 
     # Menu Loop
     m_running = True
@@ -35,7 +39,8 @@ def menu(screen):
             if event.type == QUIT:
                 m_running = False
             elif event.type == MOUSEBUTTONUP:
-                print "hallo"
+                # TODO support mouse control
+                pass
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 m_running = False
             elif event.type == KEYDOWN and event.key == K_UP:
@@ -58,8 +63,8 @@ def menu(screen):
 
         # refresh screen
         screen.blit(menu_bg, (0, 0))
-        menu_item(screen, "Continue", 50, 50, selection == 0)
-        menu_item(screen, "Select Level", 50, 170, selection == 1)
+        menu_item(screen, "Puzzle", 50, 50, selection == 0)
+        menu_item(screen, "Nothing", 50, 170, selection == 1)
         menu_item(screen, "Quit", 50, 290, selection == 2)
 
         pygame.display.flip()
@@ -86,9 +91,11 @@ def game(screen):
     # ef is the empty field position
     field, ef = create_game_field()
     # Create The Background
-    board = pygame.Surface((400, 400))
+    board = pygame.Surface((const.SIZE*100, const.SIZE*100))
     board = board.convert()
     board.fill(const.WHITE)
+
+    steps = 0
 
     clock = pygame.time.Clock()
     running = True
@@ -100,24 +107,28 @@ def game(screen):
             elif event.type == KEYDOWN:
                 if event.key == K_UP:
                     if ef[1] + 1 != const.SIZE:
+                        steps += 1
                         field[ef[0]][ef[1]], field[ef[0]][ef[1] + 1] = field[ef[0]][ef[1] + 1], field[ef[0]][ef[1]]
-                        ef_old = ef # setting old empty field
-                        ef = (ef[0], ef[1] + 1) # getting new empty field
+                        ef_old = ef  # setting old empty field
+                        ef = (ef[0], ef[1] + 1)  # getting new empty field
                         animation_up_linear(ef, ef_old, board, screen, field) # simple shifting animation
                 elif event.key == K_DOWN:
                     if ef[1] != 0:
+                        steps += 1
                         field[ef[0]][ef[1]], field[ef[0]][ef[1] - 1] = field[ef[0]][ef[1] - 1], field[ef[0]][ef[1]]
                         ef_old = ef
                         ef = (ef[0], ef[1] - 1)
                         animation_down_linear(ef, ef_old, board, screen, field)
                 elif event.key == K_LEFT:
                     if ef[0] + 1 != const.SIZE:
+                        steps += 1
                         field[ef[0]][ef[1]], field[ef[0] + 1][ef[1]] = field[ef[0] + 1][ef[1]], field[ef[0]][ef[1]]
                         ef_old = ef
                         ef = (ef[0] + 1, ef[1])
                         animation_left_linear(ef, ef_old, board, screen, field)
                 elif event.key == K_RIGHT:
                     if ef[0] != 0:
+                        steps += 1
                         field[ef[0]][ef[1]], field[ef[0] - 1][ef[1]] = field[ef[0] - 1][ef[1]], field[ef[0]][ef[1]]
                         ef_old = ef
                         ef = (ef[0] - 1, ef[1])
@@ -136,7 +147,7 @@ def game(screen):
         for i in range(const.SIZE):
             for j in range(const.SIZE):
                 if field[i][j] == 0:
-                    pygame.draw.rect(board, const.WHITE, (i * 100 + 1, j * 100 + 1, 98, 98))
+                    pygame.draw.rect(board, const.LT_GREY, (i * 100 + 1, j * 100 + 1, 98, 98))
                 else:
                     pygame.draw.rect(board, const.DK_GREY, (i * 100 + 1, j * 100 + 1, 98, 98))
                     font = pygame.font.Font(None, 50)
@@ -144,8 +155,33 @@ def game(screen):
                     textpos = mytext.get_rect(centerx=i * 100 + 50, centery=j * 100 + 50)
                     board.blit(mytext, textpos)
 
-        screen.blit(board, (25, 25))
-        pygame.display.flip()
+        screen.fill(const.GREY)
+        board_x = (screen.get_width()-board.get_width())/2
+        show_steps(screen, steps, (board_x, 20))
+        time = round(pygame.time.get_ticks()/1000)
+        show_time(screen, time, (board_x, 50))
+
+        refresh_screen(screen, board)
+
+
+def refresh_screen(screen, board):
+    board_x = (screen.get_width()-board.get_width())/2
+    screen.blit(board, (board_x, 100))
+    pygame.display.flip()
+
+
+def show_steps(screen, steps, (x, y)):
+    font = pygame.font.Font(None, 25)
+    text = font.render("Steps: {0}".format(steps), 1, const.WHITE)
+    textpos = text.get_rect(x=x, y=y)
+    screen.blit(text, textpos)
+
+
+def show_time(screen, time, (x, y)):
+    font = pygame.font.Font(None, 25)
+    text = font.render("Time: {0}".format(time)+" sec", 1, const.WHITE)
+    textpos = text.get_rect(x=x, y=y)
+    screen.blit(text, textpos)
 
 
 def create_game_field():
@@ -203,17 +239,16 @@ def animation_right_linear(ef, ef_old, board, screen, field):
     for i in range(const.ANIMATION_SPEED):
         i *= 100 / const.ANIMATION_SPEED
         clock2.tick(60)
-        # draw old and new white Tile
-        pygame.draw.rect(board, const.WHITE, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
-        pygame.draw.rect(board, const.WHITE, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
+        # draw old and new empty Tile
+        pygame.draw.rect(board, const.LT_GREY, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
+        pygame.draw.rect(board, const.LT_GREY, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
         # draw shifting number tile
         pygame.draw.rect(board, const.DK_GREY, (ef[0] * 100 + i, ef[1] * 100 + 1, 98, 98))
         font = pygame.font.Font(None, 50)
         mytext = font.render(str(field[ef_old[0]][ef_old[1]]), 1, const.WHITE)
         textpos = mytext.get_rect(centerx=ef[0] * 100 + 50 + i, centery=ef[1] * 100 + 50)
         board.blit(mytext, textpos)
-        screen.blit(board, (25, 25))
-        pygame.display.flip()
+        refresh_screen(screen, board)
 
 
 def animation_left_linear(ef, ef_old, board, screen, field):
@@ -221,17 +256,16 @@ def animation_left_linear(ef, ef_old, board, screen, field):
     for i in range(const.ANIMATION_SPEED):
         i *= 100 / const.ANIMATION_SPEED
         clock2.tick(60)
-        # draw old and new white Tile
-        pygame.draw.rect(board, const.WHITE, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
-        pygame.draw.rect(board, const.WHITE, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
+        # draw old and new empty Tile
+        pygame.draw.rect(board, const.LT_GREY, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
+        pygame.draw.rect(board, const.LT_GREY, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
         # draw shifting number tile
         pygame.draw.rect(board, const.DK_GREY, (ef[0] * 100 - i, ef[1] * 100 + 1, 98, 98))
         font = pygame.font.Font(None, 50)
         mytext = font.render(str(field[ef_old[0]][ef_old[1]]), 1, const.WHITE)
         textpos = mytext.get_rect(centerx=ef[0] * 100 + 50 - i, centery=ef[1] * 100 + 50)
         board.blit(mytext, textpos)
-        screen.blit(board, (25, 25))
-        pygame.display.flip()
+        refresh_screen(screen, board)
 
 
 def animation_up_linear(ef, ef_old, board, screen, field):
@@ -239,17 +273,16 @@ def animation_up_linear(ef, ef_old, board, screen, field):
     for i in range(const.ANIMATION_SPEED):
         i *= 100 / const.ANIMATION_SPEED
         clock2.tick(60)
-        # draw old and new white Tile
-        pygame.draw.rect(board, const.WHITE, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
-        pygame.draw.rect(board, const.WHITE, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
+        # draw old and new empty Tile
+        pygame.draw.rect(board, const.LT_GREY, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
+        pygame.draw.rect(board, const.LT_GREY, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
         # draw shifting number tile
         pygame.draw.rect(board, const.DK_GREY, (ef[0] * 100 + 1, ef[1] * 100 + 1 - i, 98, 98))
         font = pygame.font.Font(None, 50)
         mytext = font.render(str(field[ef_old[0]][ef_old[1]]), 1, const.WHITE)
         textpos = mytext.get_rect(centerx=ef[0] * 100 + 50, centery=ef[1] * 100 + 50 - i)
         board.blit(mytext, textpos)
-        screen.blit(board, (25, 25))
-        pygame.display.flip()
+        refresh_screen(screen, board)
 
 
 def animation_down_linear(ef, ef_old, board, screen, field):
@@ -257,17 +290,16 @@ def animation_down_linear(ef, ef_old, board, screen, field):
     for i in range(const.ANIMATION_SPEED):
         i *= 100 / const.ANIMATION_SPEED
         clock2.tick(60)
-        # draw old and new white Tile
-        pygame.draw.rect(board, const.WHITE, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
-        pygame.draw.rect(board, const.WHITE, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
+        # draw old and new empty Tile
+        pygame.draw.rect(board, const.LT_GREY, (ef[0] * 100 + 1, ef[1] * 100 + 1, 98, 98))
+        pygame.draw.rect(board, const.LT_GREY, (ef_old[0] * 100 + 1, ef_old[1] * 100 + 1, 98, 98))
         # draw shifting number tile
         pygame.draw.rect(board, const.DK_GREY, (ef[0] * 100 + 1, ef[1] * 100 + 1 + i, 98, 98))
         font = pygame.font.Font(None, 50)
         mytext = font.render(str(field[ef_old[0]][ef_old[1]]), 1, const.WHITE)
         textpos = mytext.get_rect(centerx=ef[0] * 100 + 50, centery=ef[1] * 100 + 50 + i)
         board.blit(mytext, textpos)
-        screen.blit(board, (25, 25))
-        pygame.display.flip()
+        refresh_screen(screen, board)
 
 if __name__ == '__main__':
     main()
