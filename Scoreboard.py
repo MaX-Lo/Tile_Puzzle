@@ -3,7 +3,7 @@ import pygame
 import re
 from pygame.locals import *
 
-# module to create fast and easy a Highscorelist for a pygame game
+# module to create fast and easy a highscorelist for a pygame game
 # created by MaX-Lo
 
 
