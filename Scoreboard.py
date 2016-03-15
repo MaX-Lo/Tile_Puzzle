@@ -11,14 +11,18 @@ class Scoreboard:
     def __init__(self, screen, filename="highscore.dat"):
         path = os.path.dirname(os.path.realpath(__file__)) + "/data/" + filename
         self.filename = path
+        # creating higscorefile if given file doesn't exist
         if not test_file(self.filename):
             create_file(self.filename)
         self.score_list = self.load_highscore_list()
 
         # Entries getting shown
         self.points = True
+        self.steps = True
         self.level = True
         self.time = True
+        # Sort property
+        self.sort_by = "TIME_DESC"
 
         self.screen = screen
 
@@ -33,10 +37,20 @@ class Scoreboard:
         self.line_space = 10
         self.font_color = (30, 30, 30)
 
-    def save_entry(self, name, points, level, time):
-        entry = Entry(name, points, level, time)
+    def save_entry(self, name, points, steps, level, time):
+        """ creates new Entry and saves it in a file """
+
+        entry = Entry(name, points, steps, level, time)
         self.score_list.append(entry)
-        self.sort_score_list_by_points()
+
+        # sort the highscorelist
+        if self.sort_by == "POINTS_DESC":
+            self.sort_by_points("DESC")
+        elif self.sort_by == "STEPS_ASC":
+            self.sort_by_steps("ASC")
+        elif self.sort_by == "TIME_DESC":
+            self.sort_by_time("DESC")
+
         if len(self.score_list) > 10:
             self.score_list.pop(-1)
         self.save_in_file()
@@ -44,11 +58,11 @@ class Scoreboard:
     def save_in_file(self):
         raw_content = []
         for entry in self.score_list:
-            line = entry.name + "-" + str(entry.points) + "-" + str(entry.level) + "-" + str(entry.time)
+            line = entry.name + "-" + str(entry.points) + "-" + str(entry.steps) + "-" + str(entry.level) + "-" + str(entry.time)
             raw_content.append(str(line))
         save_file(self.filename, raw_content)
 
-    def add(self, name="", points=0, level=0, time=0.0):
+    def add(self, name="", points=0, steps=0, level=0, time=0.0):
         scoreboard_running = True
         while scoreboard_running:
 
@@ -60,14 +74,15 @@ class Scoreboard:
                         if event.key <= 127:
                             name += chr(event.key).upper()
                     elif event.key == K_RETURN or event.key == K_ESCAPE:
-                        self.save_entry(name, points, level, time)
+                        self.save_entry(name, points, steps, level, time)
                         scoreboard_running = False
                     elif event.key == K_DELETE or event.key == 8:
                         name = name[:-1]  # Deletes last char
                     elif event.key == K_MINUS:  # "-" gets replaced by "_"
                         name += "_"
                     elif event.key <= 127:
-                        name += chr(event.key)
+                        if len(name) < 9:  # name may not be longer than 8 character
+                            name += chr(event.key)
 
             # Table
             pygame.draw.rect(self.screen, self.bg_color, (0, 0, self.screen.get_width(), self.screen.get_height()))
@@ -81,12 +96,16 @@ class Scoreboard:
             y += 5
             x += 5
             y_entry = y
+            
             # print table head
             self.screen.blit(fontobject.render("Name", 1, self.font_color), (x, y_entry))
             xn = x
             if self.points:
-                xn += 125
+                xn += 100
                 self.screen.blit(fontobject.render("Points", 1, self.font_color), (xn, y_entry))
+            if self.steps:
+                xn += 75
+                self.screen.blit(fontobject.render("Steps", 1, self.font_color), (xn, y_entry))
             if self.level:
                 xn += 75
                 self.screen.blit(fontobject.render("Level", 1, self.font_color), (xn, y_entry))
@@ -94,21 +113,26 @@ class Scoreboard:
                 xn += 75
                 self.screen.blit(fontobject.render("Time", 1, self.font_color), (xn, y_entry))
             y_entry += self.font_size + self.line_space
+            
             # print all existing entries
             for entry in self.score_list:
                 self.screen.blit(fontobject.render(entry.name, 1, self.font_color), (x, y_entry))
                 xn = x
                 if self.points:
-                    xn += 125
-                    self.screen.blit(fontobject.render("{0:8d}".format(entry.points),
-                                                       1, self.font_color), (xn, y_entry))
+                    xn += 100
+                    self.screen.blit(fontobject.render("{0:8d}".format(entry.points), 1, self.font_color), (xn, y_entry))
+                 
+                if self.steps:
+                    xn += 75
+                    self.screen.blit(fontobject.render("{0:8d}".format(entry.steps), 1, self.font_color), (xn, y_entry))
+                                                          
                 if self.level:
                     xn += 75
                     self.screen.blit(fontobject.render("{0:3d}".format(entry.level),
                                                        1, self.font_color), (xn, y_entry))
                 if self.time:
                     xn += 75
-                    self.screen.blit(fontobject.render("{0:5.2f}".format(entry.time),
+                    self.screen.blit(fontobject.render("{0:5.2f} sec".format(entry.time),
                                                        1, self.font_color), (xn, y_entry))
                 y_entry += self.font_size + self.line_space
             y = (self.font_size + self.line_space) * 11
@@ -120,11 +144,30 @@ class Scoreboard:
 
             pygame.display.flip()
 
-    def sort_score_list_by_points(self):
+    def sort_by_points(self, direction):
+        """ sort the list by points descending """
         for num in range(len(self.score_list)-1, 0, -1):   # goes from last to first element
             for i in range(num):
                 if self.score_list[i].points < self.score_list[i+1].points:
                     self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]   # exchanges the elements
+
+    def sort_by_steps(self, direction):
+        """ sort the list by steps ascending """
+        for num in range(len(self.score_list)-1, 0, -1):   # goes from last to first element
+            for i in range(num):
+                if self.score_list[i].steps > self.score_list[i+1].steps:
+                    self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]   # exchanges the elements
+
+    def sort_by_time(self, direction):
+        """ sort the list by steps ascending """
+        for num in range(len(self.score_list)-1, 0, -1):   # goes from last to first element
+            for i in range(num):
+                if direction == "ASC":
+                    if self.score_list[i].time > self.score_list[i+1].time:
+                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]
+                elif direction == "DESC":
+                    if self.score_list[i].time < self.score_list[i+1].time:
+                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]
 
     def load_highscore_list(self):
         """ formats the higscore file content
@@ -133,19 +176,30 @@ class Scoreboard:
         formated_list = []
         for line in raw_list:
             entry = Entry()
-            pos = [c.start() for c in re.finditer('-', line)]
+            pos = [c.start() for c in re.finditer('-', line)] # getting the divider positions
             entry.name = line[:pos[0]]
             entry.points = int(line[pos[0]+1:pos[1]])
-            entry.level = int(line[pos[1]+1:pos[2]])
-            entry.time = float(line[pos[2]+1:])
+            entry.steps = int(line[pos[1]+1:pos[2]])
+            entry.level = int(line[pos[2]+1:pos[3]])
+            entry.time = float(line[pos[3]+1:])
             formated_list.append(entry)
         return formated_list
+    
+    def set_border_color(self, color):
+        self.border_color = color
+    
+    def set_bg_color(self, color):
+        self.bg_color = color
+    
+    def set_table_color(self, color):
+        self.table_color = color
 
 
 class Entry:
-    def __init__(self, name="The Fox", points=0, level=0, time=0.0):
+    def __init__(self, name="The Fox", points=0, steps=0, level=0, time=0.0):
         self.name = name
         self.points = points
+        self.steps = steps
         self.level = level
         self.time = time
 
