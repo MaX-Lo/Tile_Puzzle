@@ -1,7 +1,7 @@
 import pygame
 import random
 
-import Constants as const
+import Constants as Const
 
 # created by MaX-Lo on 15.03.2016
 # contains puzzle with methods to create new puzzles, move tiles and so on...
@@ -11,7 +11,7 @@ class Puzzle:
     def __init__(self):
         self.field = None
         self.empty_field = None
-        self.size = const.SIZE
+        self.size = Const.SIZE
         self.num_at_correct_pos = -1
 
         self.create_puzzle()
@@ -26,7 +26,7 @@ class Puzzle:
         :return: field filled with numbers, position of the empty field
         """
         # init int array
-        field = [[0 for i in range(self.size)] for i in range(self.size)]
+        field = [[0 for _ in range(self.size)] for i in range(self.size)]
         empty_field = None
 
         # set array elements with unique random numbers
@@ -53,42 +53,6 @@ class Puzzle:
 
         self.field = field
         self.empty_field = empty_field
-
-    def is_solvable(self):
-        """
-        Not every puzzle is solvable therefore this method test the current puzzle.
-        :return: whether puzzle is solvable
-        """
-        l = []
-        # writing all numbers row by row into one list (not necessary, but makes the following step easier)
-        empty_field_row = 0
-        for i in range(self.size):
-            for j in range(self.size):
-                if self.field[j][i] != 0:
-                    l.append(self.field[j][i])
-                else:
-                    empty_field_row = i+1
-
-        # getting the number of unsorted pairs and row of the empty field
-        unsorted_pairs = 0
-        for pos in range(len(l)):
-            for i in range(0, pos):
-                if l[pos] < l[i]:
-                    unsorted_pairs += 1
-
-        # checking if sum of unsorted pairs and row of the empty field is even or uneven
-        # even and even rowlength -> solvable
-        # uneven and uneven rowlength -> solvable
-        if (unsorted_pairs + empty_field_row) % 2 == 0:
-            if self.size % 2 == 0:
-                return True
-            else:
-                return False
-        else:
-            if self.size % 2 == 0:
-                return False
-            else:
-                return True
 
     def refresh_num_at_correct_pos(self):
         """ checks how many tiles are at their final (correct) position """
@@ -149,14 +113,15 @@ class Puzzle:
             return False
 
     def draw(self, board):
+        board.fill(Const.LT)
         for i in range(self.size):
             for j in range(self.size):
                 if self.field[i][j] == 0:
-                    pygame.draw.rect(board, const.LT, (i * 100 + 1, j * 100 + 1, 98, 98))
+                    pygame.draw.rect(board, Const.LT, (i * 100 + 1, j * 100 + 1, 98, 98))
                 else:
-                    pygame.draw.rect(board, const.DK, (i * 100 + 1, j * 100 + 1, 98, 98))
+                    pygame.draw.rect(board, Const.DK, (i * 100 + 1, j * 100 + 1, 98, 98))
                     font = pygame.font.Font(None, 50)
-                    mytext = font.render(str(self.field[i][j]), 1, const.WHITE)
+                    mytext = font.render(str(self.field[i][j]), 1, Const.WHITE)
                     textpos = mytext.get_rect(centerx=i * 100 + 50, centery=j * 100 + 50)
                     board.blit(mytext, textpos)
 
@@ -164,7 +129,7 @@ class Puzzle:
         for i in range(self.size):
             for j in range(self.size):
                 if self.field[i][j] == 0:
-                    pygame.draw.rect(board, const.LT, (i * 100 + 1, j * 100 + 1, 98, 98))
+                    pygame.draw.rect(board, Const.LT, (i * 100 + 1, j * 100 + 1, 98, 98))
                 else:
                     red = random.randint(0, 90)
                     green = random.randint(0, 90)
@@ -172,9 +137,44 @@ class Puzzle:
                     color = (red, green, blue)
                     pygame.draw.rect(board, color, (i * 100 + 1, j * 100 + 1, 98, 98))
                     font = pygame.font.Font(None, 50)
-                    mytext = font.render(str(self.field[i][j]), 1, const.WHITE)
+                    mytext = font.render(str(self.field[i][j]), 1, Const.WHITE)
                     textpos = mytext.get_rect(centerx=i * 100 + 50, centery=j * 100 + 50)
                     board.blit(mytext, textpos)
+
+    def is_solvable(self):
+        """
+        Not every puzzle is solvable therefore this method test the current puzzle.
+        :return: whether puzzle is solvable
+        """
+        l = []
+        # writing all numbers row by row into one list (not necessary, but makes the following step easier)
+        empty_field_row = 0
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.field[j][i] != 0:
+                    l.append(self.field[j][i])
+                else:
+                    empty_field_row = i+1
+
+        # getting the number of unsorted pairs and row of the empty field
+        unsorted_pairs = 0
+        for pos in range(len(l)):
+            for i in range(0, pos):
+                if l[pos] < l[i]:
+                    unsorted_pairs += 1
+
+        # even size: unsorted_pairs + empty_field_row = even -> solvable
+        # odd size: unsorted_pairs = even -> solvable
+        if self.size % 2 == 0: # even
+            if (unsorted_pairs + empty_field_row) % 2 == 0:
+                return True
+            else:
+                return False
+        else:  # odd
+            if unsorted_pairs % 2 == 0:
+                return True
+            else:
+                return False
 
     def is_solved(self):
         """
