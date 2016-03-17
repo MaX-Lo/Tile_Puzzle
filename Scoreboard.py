@@ -2,11 +2,9 @@ import os.path
 import pygame
 import re
 from pygame.locals import *
-import Constants as Const
 
 # module to create a highscorelist for a pygame game
 # created by MaX-Lo
-
 
 class Scoreboard:
     def __init__(self, filename="highscore.dat"):
@@ -17,7 +15,7 @@ class Scoreboard:
         # creating higscorefile if given file doesn't exist
         if not test_file(self.filename):
             create_file(self.filename)
-        self.score_list = self.load_highscore_list()
+        self.entry_list = self.load_highscore_list()
 
         # Entries getting shown
         self.points = False
@@ -39,19 +37,18 @@ class Scoreboard:
         self.line_space = 10
         self.font_color = (30, 30, 30)
 
-    def save_entry(self, name, points, steps, level, time):
+    def save_entry(self, entry):
         """ creates new Entry and saves it in a file """
 
-        if name == "":
-            name = "Mr. XXX"
+        if entry.name == "":
+            entry.name = "Mr. XXX"
 
-        entry = Entry(name, points, steps, level, time)
-        self.score_list.append(entry)
+        self.entry_list.append(entry)
 
         self.sort_list()
 
-        if len(self.score_list) > 10:
-            self.score_list.pop(-1)
+        if len(self.entry_list) > 10:
+            self.entry_list.pop(-1)
         self.save_in_file()
 
     def sort_list(self):
@@ -69,18 +66,29 @@ class Scoreboard:
             self.sort_by_time("DESC")
         elif self.sort_by == "TIME_ASC":
             self.sort_by_time("ASC")
+        elif self.sort_by == "LEVEL_DESC":
+            self.sort_by_level("DESC")
+        elif self.sort_by == "LEVEL_ASC":
+            self.sort_by_level("ASC")
 
     def save_in_file(self):
         raw_content = []
-        for entry in self.score_list:
+        for entry in self.entry_list:
             line = entry.name + "-" + str(entry.points) + "-" + str(entry.steps) + "-" + str(entry.level) + "-" + str(entry.time)
             raw_content.append(str(line))
         save_file(self.filename, raw_content)
 
     def add(self, name="", points=0, steps=0, level=0, time=0.0):
-        scoreboard_running = True
-        self.sort_list()
+
+        entry = Entry(name, points, steps, level, time)
+
+        new_entry_pos = self.get_position(entry)
+        if new_entry_pos <= 10:
+            self.entry_list.pop(-1)
+
         clock = pygame.time.Clock()
+
+        scoreboard_running = True
         while scoreboard_running:
             clock.tick(30)
             for event in pygame.event.get():
@@ -88,18 +96,18 @@ class Scoreboard:
                     pygame.quit()
                 elif event.type == KEYUP:
                     if event.key == K_RETURN or event.key == K_ESCAPE:
-                        self.save_entry(name, points, steps, level, time)
+                        self.save_entry(entry)
                         scoreboard_running = False
                     elif event.key == K_DELETE or event.key == 8:
-                        name = name[:-1]  # Deletes last char
+                        entry.name = entry.name[:-1]  # Deletes last char
                     elif event.key == K_MINUS:  # "-" gets replaced by "_"
-                        name += "_"
+                        entry.name += "_"
                     elif event.key <= 127:
-                        if len(name) < 9:  # name may not be longer than 8 character
+                        if len(entry.name) < 9:  # name may not be longer than 8 character
                             if pygame.key.get_mods() & pygame.KMOD_SHIFT:
-                                name += chr(event.key).upper()
+                                entry.name += chr(event.key).upper()
                             else:
-                                name += chr(event.key)
+                                entry.name += chr(event.key)
 
             # Table
             pygame.draw.rect(self.screen, self.bg_color, (0, 0, self.screen.get_width(), self.screen.get_height()))
@@ -115,88 +123,180 @@ class Scoreboard:
             y_entry = y
             
             # print table head
-            self.screen.blit(fontobject.render("Name", 1, self.font_color), (x, y_entry))
             xn = x
+            self.screen.blit(fontobject.render("Name", 1, self.font_color), (xn, y_entry))
+            xn += 130
             if self.points:
-                xn += 100
                 self.screen.blit(fontobject.render("Points", 1, self.font_color), (xn, y_entry))
+                xn += 75
             if self.steps:
-                xn += 75
                 self.screen.blit(fontobject.render("Steps", 1, self.font_color), (xn, y_entry))
+                xn += 75
             if self.level:
-                xn += 75
                 self.screen.blit(fontobject.render("Level", 1, self.font_color), (xn, y_entry))
-            if self.time:
                 xn += 75
+            if self.time:
                 self.screen.blit(fontobject.render("Time", 1, self.font_color), (xn, y_entry))
+                xn += 75
+
             y_entry += self.font_size + self.line_space
-            
+
+            num = 1 # increased everytime by 1 to know when it's time to draw the new entry
             # print all existing entries
-            for entry in self.score_list:
-                self.screen.blit(fontobject.render(entry.name, 1, self.font_color), (x, y_entry))
+            for element in self.entry_list:
+                # printing new entry at correct position
+                if num == new_entry_pos:
+                    xn = x
+                    self.screen.blit(fontobject.render(entry.name + (9-len(entry.name))*"_", 1, self.font_color), (xn, y_entry))
+                    xn += 130
+
+                    if self.points:
+                        self.screen.blit(fontobject.render("{0:8d}".format(entry.points), 1, self.font_color), (xn, y_entry))
+                        xn += 75
+
+                    if self.steps:
+                        self.screen.blit(fontobject.render("{0:8d}".format(entry.steps), 1, self.font_color), (xn, y_entry))
+                        xn += 75
+
+                    if self.level:
+                        self.screen.blit(fontobject.render("{0:3d}".format(entry.level),
+                                                           1, self.font_color), (xn, y_entry))
+                        xn += 75
+
+                    if self.time:
+                        self.screen.blit(fontobject.render("{0:5.2f} sec".format(entry.time),
+                                                           1, self.font_color), (xn, y_entry))
+                        xn += 75
+                    y_entry += self.font_size + self.line_space
+                num += 1
+
+                # printing already existing entries
                 xn = x
+                self.screen.blit(fontobject.render(element.name, 1, self.font_color), (xn, y_entry))
+                xn += 130
+
                 if self.points:
-                    xn += 100
-                    self.screen.blit(fontobject.render("{0:8d}".format(entry.points), 1, self.font_color), (xn, y_entry))
-                 
+                    self.screen.blit(fontobject.render("{0:8d}".format(element.points), 1, self.font_color), (xn, y_entry))
+                    xn += 75
+
                 if self.steps:
+                    self.screen.blit(fontobject.render("{0:8d}".format(element.steps), 1, self.font_color), (xn, y_entry))
                     xn += 75
-                    self.screen.blit(fontobject.render("{0:8d}".format(entry.steps), 1, self.font_color), (xn, y_entry))
-                                                          
+
                 if self.level:
+                    self.screen.blit(fontobject.render("{0:3d}".format(element.level),
+                                                           1, self.font_color), (xn, y_entry))
                     xn += 75
-                    self.screen.blit(fontobject.render("{0:3d}".format(entry.level),
-                                                       1, self.font_color), (xn, y_entry))
+
                 if self.time:
+                    self.screen.blit(fontobject.render("{0:5.2f} sec".format(element.time),
+                                                           1, self.font_color), (xn, y_entry))
                     xn += 75
-                    self.screen.blit(fontobject.render("{0:5.2f} sec".format(entry.time),
-                                                       1, self.font_color), (xn, y_entry))
+
                 y_entry += self.font_size + self.line_space
             y = (self.font_size + self.line_space) * 11
 
-            # Input Line
-            pygame.draw.rect(self.screen, self.border_color, (x-10, y+40, width+10, 40+10))
-            pygame.draw.rect(self.screen, self.table_color, (x-5, y+45, width, 40))
-            self.screen.blit(fontobject.render("Name: " + name + (9-len(name))*"_", 1, self.font_color), (x, y+55))
-
-            pygame.draw.rect(self.screen, self.border_color, (x-10, y+100, width+10, 40+10))
-            pygame.draw.rect(self.screen, self.table_color, (x-5, y+105, width, 40))
-
-            self.screen.blit(fontobject.render("Points: " + str(points) + " Steps: " + str(steps) + " Level: " + str(level) + " Time: " + str(time), 1, self.font_color), (x, y+115))
-
             pygame.display.flip()
+
+    def get_position(self, entry):
+        """
+        calculates the position of the new entry in the highscorelist
+        """
+        self.sort_list()
+
+        pos = 1
+        if self.sort_by == "TIME_ASC":
+            for element in self.entry_list:
+                if entry.time >= element.time:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "TIME_DESC":
+            for element in self.entry_list:
+                if entry.time <= element.time:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "POINTS_ASC":
+            for element in self.entry_list:
+                if entry.points >= element.points:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "POINTS_DESC":
+            for element in self.entry_list:
+                if entry.points <= element.points:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "STEPS_ASC":
+            for element in self.entry_list:
+                if entry.steps >= element.steps:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "STEPS_DESC":
+            for element in self.entry_list:
+                if entry.steps <= element.steps:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "LEVEL_ASC":
+            for element in self.entry_list:
+                if entry.level >= element.level:
+                    pos += 1
+                else:
+                    return pos
+        elif self.sort_by == "LEVEL_DESC":
+            for element in self.entry_list:
+                if entry.level <= element.level:
+                    pos += 1
+                else:
+                    return pos
+        return pos
+
 
     def sort_by_points(self, direction):
         """ sort the list by points descending """
-        for num in range(len(self.score_list)-1, 0, -1):   # goes from last to first element
+        for num in range(len(self.entry_list)-1, 0, -1):   # goes from last to first element
             for i in range(num):
                 if direction == "ASC":
-                    if self.score_list[i].points > self.score_list[i+1].points:
-                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]   # exchanges the elements
+                    if self.entry_list[i].points > self.entry_list[i+1].points:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]   # exchanges the elements
                 elif direction == "DESC":
-                    if self.score_list[i].points < self.score_list[i+1].points:
-                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]   # exchanges the elements
+                    if self.entry_list[i].points < self.entry_list[i+1].points:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]   # exchanges the elements
 
     def sort_by_steps(self, direction):
         """ sort the list by steps ascending """
-        for num in range(len(self.score_list)-1, 0, -1):   # goes from last to first element
+        for num in range(len(self.entry_list)-1, 0, -1):   # goes from last to first element
             for i in range(num):
                 if direction == "ASC":
-                    if self.score_list[i].steps > self.score_list[i+1].steps:
-                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]   # exchanges the elements
+                    if self.entry_list[i].steps > self.entry_list[i+1].steps:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]   # exchanges the elements
                 elif direction == "DESC":
-                    if self.score_list[i].steps < self.score_list[i+1].steps:
-                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]   # exchanges the elements
+                    if self.entry_list[i].steps < self.entry_list[i+1].steps:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]   # exchanges the elements
 
     def sort_by_time(self, direction):
-        for num in range(len(self.score_list)-1, 0, -1):   # goes from last to first element
+        for num in range(len(self.entry_list)-1, 0, -1):   # goes from last to first element
             for i in range(num):
                 if direction == "ASC":
-                    if self.score_list[i].time > self.score_list[i+1].time:
-                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]
+                    if self.entry_list[i].time > self.entry_list[i+1].time:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]
                 elif direction == "DESC":
-                    if self.score_list[i].time < self.score_list[i+1].time:
-                        self.score_list[i], self.score_list[i + 1] = self.score_list[i + 1], self.score_list[i]
+                    if self.entry_list[i].time < self.entry_list[i+1].time:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]
+
+    def sort_by_level(self, direction):
+        for num in range(len(self.entry_list)-1, 0, -1):   # goes from last to first element
+            for i in range(num):
+                if direction == "ASC":
+                    if self.entry_list[i].level > self.entry_list[i+1].level:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]
+                elif direction == "DESC":
+                    if self.entry_list[i].level < self.entry_list[i+1].level:
+                        self.entry_list[i], self.entry_list[i + 1] = self.entry_list[i + 1], self.entry_list[i]
 
     def load_highscore_list(self):
         """ formats the higscore file content

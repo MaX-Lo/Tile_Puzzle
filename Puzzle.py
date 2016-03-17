@@ -3,6 +3,7 @@ import random
 
 import Constants as Const
 
+
 # created by MaX-Lo on 15.03.2016
 # contains puzzle with methods to create new puzzles, move tiles and so on...
 
@@ -23,7 +24,6 @@ class Puzzle:
     def create_puzzle(self):
         """
         generates the field filled with unique random numbers
-        :return: field filled with numbers, position of the empty field
         """
         # init int array
         field = [[0 for _ in range(self.size)] for i in range(self.size)]
@@ -74,8 +74,10 @@ class Puzzle:
 
     def move_tile_up(self):
         if self.empty_field[1] + 1 != self.size:
-            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0]][self.empty_field[1] + 1] =\
-                self.field[self.empty_field[0]][self.empty_field[1] + 1], self.field[self.empty_field[0]][self.empty_field[1]]
+            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0]][
+                self.empty_field[1] + 1] = \
+                self.field[self.empty_field[0]][self.empty_field[1] + 1], self.field[self.empty_field[0]][
+                    self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0], self.empty_field[1] + 1)  # getting new empty field
             return True
@@ -84,8 +86,10 @@ class Puzzle:
 
     def move_tile_down(self):
         if self.empty_field[1] - 1 >= 0:
-            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0]][self.empty_field[1] - 1] =\
-                self.field[self.empty_field[0]][self.empty_field[1] - 1], self.field[self.empty_field[0]][self.empty_field[1]]
+            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0]][
+                self.empty_field[1] - 1] = \
+                self.field[self.empty_field[0]][self.empty_field[1] - 1], self.field[self.empty_field[0]][
+                    self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0], self.empty_field[1] - 1)  # getting new empty field
             return True
@@ -94,8 +98,10 @@ class Puzzle:
 
     def move_tile_right(self):
         if self.empty_field[0] - 1 >= 0:
-            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0] - 1][self.empty_field[1]] =\
-                self.field[self.empty_field[0] - 1][self.empty_field[1]], self.field[self.empty_field[0]][self.empty_field[1]]
+            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0] - 1][
+                self.empty_field[1]] = \
+                self.field[self.empty_field[0] - 1][self.empty_field[1]], self.field[self.empty_field[0]][
+                    self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0] - 1, self.empty_field[1])  # getting new empty field
             return True
@@ -104,8 +110,10 @@ class Puzzle:
 
     def move_tile_left(self):
         if self.empty_field[0] + 1 != self.size:
-            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0] + 1][self.empty_field[1]] =\
-                self.field[self.empty_field[0] + 1][self.empty_field[1]], self.field[self.empty_field[0]][self.empty_field[1]]
+            self.field[self.empty_field[0]][self.empty_field[1]], self.field[self.empty_field[0] + 1][
+                self.empty_field[1]] = \
+                self.field[self.empty_field[0] + 1][self.empty_field[1]], self.field[self.empty_field[0]][
+                    self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0] + 1, self.empty_field[1])  # getting new empty field
             return True
@@ -154,7 +162,7 @@ class Puzzle:
                 if self.field[j][i] != 0:
                     l.append(self.field[j][i])
                 else:
-                    empty_field_row = i+1
+                    empty_field_row = i + 1
 
         # getting the number of unsorted pairs and row of the empty field
         unsorted_pairs = 0
@@ -165,7 +173,7 @@ class Puzzle:
 
         # even size: unsorted_pairs + empty_field_row = even -> solvable
         # odd size: unsorted_pairs = even -> solvable
-        if self.size % 2 == 0: # even
+        if self.size % 2 == 0:  # even
             if (unsorted_pairs + empty_field_row) % 2 == 0:
                 return True
             else:
@@ -187,7 +195,7 @@ class Puzzle:
                 if self.field[j][i] != number:
                     return False
                 number += 1
-                # last field is empty
+                # last field should be empty
                 if number == self.size ** 2:
                     return True
         return True
