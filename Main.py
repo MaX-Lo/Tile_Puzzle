@@ -39,9 +39,6 @@ def menu(screen):
         for event in pygame.event.get():
             if event.type == QUIT:
                 m_running = False
-            elif event.type == MOUSEBUTTONUP:
-                # TODO support mouse control
-                pass
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 m_running = False
             elif event.type == KEYUP:
@@ -116,34 +113,26 @@ def game():
     while running:
         clock.tick(30)
         t = time.time() - time0
+        blank_screen = get_screen_without_puzzle(screen, steps, t)
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
+            elif event.type == MOUSEBUTTONUP:
+                puzzle.click(pygame.mouse.get_pos(), board, blank_screen)
             elif event.type == KEYDOWN:
                 if event.key == K_UP or event.key == K_w:
-                    if puzzle.move_tile_up():
+                    if puzzle.move_tile_up(board, blank_screen):
                         steps += 1
-                        animation_up_linear(board, screen, puzzle)  # simple shifting animation
-                    else:
-                        animation_tremble(screen, board, get_screen_without_puzzle(screen, steps, t))
                 elif event.key == K_DOWN or event.key == K_s:
-                    if puzzle.move_tile_down():
+                    if puzzle.move_tile_down(board, blank_screen):
                         steps += 1
-                        animation_down_linear(board, screen, puzzle)
-                    else:
-                        animation_tremble(screen, board, get_screen_without_puzzle(screen, steps, t))
                 elif event.key == K_LEFT or event.key == K_a:
-                    if puzzle.move_tile_left():
+                    if puzzle.move_tile_left(board, blank_screen):
                         steps += 1
-                        animation_left_linear(board, screen, puzzle)
-                    else:
-                        animation_tremble(screen, board, get_screen_without_puzzle(screen, steps, t))
                 elif event.key == K_RIGHT or event.key == K_d:
-                    if puzzle.move_tile_right():
+                    if puzzle.move_tile_right(board, blank_screen):
                         steps += 1
-                        animation_right_linear(board, screen, puzzle)
-                    else:
-                        animation_tremble(screen, board, get_screen_without_puzzle(screen, steps, t))
             elif event.type == KEYUP:
                 if event.key == K_ESCAPE:
                     running = False

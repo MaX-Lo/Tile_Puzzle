@@ -83,7 +83,7 @@ class Scoreboard:
         entry = Entry(name, points, steps, level, time)
 
         new_entry_pos = self.get_position(entry)
-        if new_entry_pos <= 10:
+        if new_entry_pos <= 10 <= len(self.entry_list):
             self.entry_list.pop(-1)
 
         clock = pygame.time.Clock()
@@ -141,6 +141,29 @@ class Scoreboard:
 
             y_entry += self.font_size + self.line_space
 
+            if len(self.entry_list) == 0:
+                # printing new entry at correct position
+                xn = x
+                self.screen.blit(fontobject.render(entry.name + (9-len(entry.name))*"_", 1, self.font_color), (xn, y_entry))
+                xn += 130
+
+                if self.points:
+                    self.screen.blit(fontobject.render("{0:8d}".format(entry.points), 1, self.font_color), (xn, y_entry))
+                    xn += 75
+
+                if self.steps:
+                    self.screen.blit(fontobject.render("{0:8d}".format(entry.steps), 1, self.font_color), (xn, y_entry))
+                    xn += 75
+
+                if self.level:
+                    self.screen.blit(fontobject.render("{0:3d}".format(entry.level),
+                                                           1, self.font_color), (xn, y_entry))
+                    xn += 75
+
+                if self.time:
+                    self.screen.blit(fontobject.render("{0:5.2f} sec".format(entry.time),
+                                                       1, self.font_color), (xn, y_entry))
+
             num = 1 # increased everytime by 1 to know when it's time to draw the new entry
             # print all existing entries
             for element in self.entry_list:
@@ -194,8 +217,6 @@ class Scoreboard:
                     xn += 75
 
                 y_entry += self.font_size + self.line_space
-            y = (self.font_size + self.line_space) * 11
-
             pygame.display.flip()
 
     def get_position(self, entry):
