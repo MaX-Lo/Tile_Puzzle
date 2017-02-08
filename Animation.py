@@ -8,7 +8,8 @@ import Constants as Const
 
 
 # a lot of animation stuff to make the game look better
-def animation_right_linear(board, screen, puzzle):
+def animation_right_linear(board, puzzle):
+    screen = pygame.display.get_surface()
     field = puzzle.field
     ef = puzzle.empty_field
     ef_old = (puzzle.empty_field[0] + 1, puzzle.empty_field[1])
@@ -30,7 +31,8 @@ def animation_right_linear(board, screen, puzzle):
         pygame.display.flip()
 
 
-def animation_left_linear(board, screen, puzzle):
+def animation_left_linear(board, puzzle):
+    screen = pygame.display.get_surface()
     field = puzzle.field
     ef = puzzle.empty_field
     ef_old = (puzzle.empty_field[0] - 1, puzzle.empty_field[1])
@@ -52,7 +54,8 @@ def animation_left_linear(board, screen, puzzle):
         pygame.display.flip()
 
 
-def animation_up_linear(board, screen, puzzle):
+def animation_up_linear(board, puzzle):
+    screen = pygame.display.get_surface()
     field = puzzle.field
     ef = puzzle.empty_field
     ef_old = (puzzle.empty_field[0], puzzle.empty_field[1] - 1)
@@ -74,7 +77,8 @@ def animation_up_linear(board, screen, puzzle):
         pygame.display.flip()
 
 
-def animation_down_linear(board, screen, puzzle):
+def animation_down_linear(board, puzzle):
+    screen = pygame.display.get_surface()
     field = puzzle.field
     ef = puzzle.empty_field
     ef_old = (puzzle.empty_field[0], puzzle.empty_field[1] + 1)

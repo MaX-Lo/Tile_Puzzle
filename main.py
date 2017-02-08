@@ -1,13 +1,14 @@
 from pygame.locals import *
 
-# created by MaX-Lo
-# on 14.03.2016
 import time
 
 from Animation import *
 from Puzzle import Puzzle
 from Scoreboard import Scoreboard
 import Constants as Const
+
+# created by MaX-Lo
+# on 14.03.2016
 
 
 def main():
@@ -141,7 +142,7 @@ def game():
 
         if puzzle.is_solved():
         #if True:
-            print "VICTORY!!!"
+            print("VICTORY!!!")
             show_winning_screen(screen, board, puzzle, steps, t)
             show_scoreboard(steps, t)
             running = False
@@ -172,14 +173,16 @@ def change_theme():
     Const.MD = (red + 10, green + 10, blue + 10)
 
 
-def show_steps(screen, steps, (x, y)):
+def show_steps(screen, steps, pos):
+    x, y = pos
     font = pygame.font.Font(None, 25)
     text = font.render("Steps: {0}".format(steps), 1, Const.WHITE)
     textpos = text.get_rect(x=x, y=y)
     screen.blit(text, textpos)
 
 
-def show_time(screen, time, (x, y)):
+def show_time(screen, time, pos):
+    x, y = pos
     font = pygame.font.Font(None, 25)
     time = round(time, 1)
     text = font.render("Time: {0}".format(time) +" sec", 1, Const.WHITE)
@@ -215,15 +218,15 @@ def show_winning_screen(screen, board, puzzle, steps, t):
         screen.blit(get_screen_without_puzzle(screen, steps, t), (0, 0))
 
         screen.blit(board, (25, 100))
-        # draw "Solved" caption
-        font = pygame.font.Font(None, Const.SIZE * 50)
-
-        text = font.render("Solved", 1, Const.WHITE)
-        textpos = text.get_rect(centerx=screen.get_width()/2, centery=screen.get_height()/2)
-        screen.blit(text, textpos)
 
         # updates the particle spring
         animation_particle_spring(screen)
+
+        # draw "Solved" caption
+        font = pygame.font.Font(None, Const.SIZE * 50)
+        text = font.render("Solved", 1, Const.WHITE)
+        textpos = text.get_rect(centerx=screen.get_width()/2, centery=screen.get_height()/2)
+        screen.blit(text, textpos)
 
         # refresh Screen
         pygame.display.flip()
@@ -231,7 +234,7 @@ def show_winning_screen(screen, board, puzzle, steps, t):
 
 def show_scoreboard(steps, time):
     filename = "highscore" + str(Const.SIZE) + "x" + str(Const.SIZE) + ".dat"
-    scoreboard = Scoreboard( filename)
+    scoreboard = Scoreboard(filename)
     scoreboard.set_bg_color(Const.MD)
     scoreboard.set_border_color(Const.DK)
     scoreboard.set_table_color(Const.LT)

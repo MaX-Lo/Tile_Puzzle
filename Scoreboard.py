@@ -363,7 +363,7 @@ def save_file(name, content):
 
 def load_file(name):
     content = []
-    print name
+    print(name)
     fobj = open(name, "r")
     for line in fobj:
         content.append(line.rstrip())  # rstrip entfernt Leerzeichen und Newlines am rechten Rand

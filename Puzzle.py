@@ -80,7 +80,7 @@ class Puzzle:
                         0 < b_pos[1] < len(self.field[1]) * 100:
             clicked_field = (b_pos[0] / 100, b_pos[1] / 100)
 
-            print "click:", clicked_field, " empty: ", self.empty_field
+            print("click:", clicked_field, " empty: ", self.empty_field)
             if clicked_field[0]-1 == self.empty_field[0] and \
                     clicked_field[1] == self.empty_field[1]:
                 self.move_tile_left(board, blank_screen)
@@ -102,7 +102,7 @@ class Puzzle:
                     self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0], self.empty_field[1] + 1)  # getting new empty field
-            animation_up_linear(board, pygame.display.get_surface(), self)  # simple shifting animation
+            animation_up_linear(board, self)  # simple shifting animation
             return True
         else:
             animation_tremble(pygame.display.get_surface(), board, blank_screen)
@@ -116,7 +116,7 @@ class Puzzle:
                     self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0], self.empty_field[1] - 1)  # getting new empty field
-            animation_down_linear(board, pygame.display.get_surface(), self)  # simple shifting animation
+            animation_down_linear(board, self)  # simple shifting animation
             return True
         else:
             animation_tremble(pygame.display.get_surface(), board, blank_screen)
@@ -130,7 +130,7 @@ class Puzzle:
                     self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0] - 1, self.empty_field[1])  # getting new empty field
-            animation_right_linear(board, pygame.display.get_surface(), self)  # simple shifting animation
+            animation_right_linear(board, self)  # simple shifting animation
             return True
         else:
             animation_tremble(pygame.display.get_surface(), board, blank_screen)
@@ -144,7 +144,7 @@ class Puzzle:
                     self.empty_field[1]]
 
             self.empty_field = (self.empty_field[0] + 1, self.empty_field[1])  # getting new empty field
-            animation_left_linear(board, pygame.display.get_surface(), self)  # simple shifting animation
+            animation_left_linear(board, self)  # simple shifting animation
             return True
         else:
             animation_tremble(pygame.display.get_surface(), board, blank_screen)
