@@ -6,9 +6,11 @@ Sort all numbers according to their value and leave the bottom right field blank
 Tiles can be moved with the arrow key's or WASD. 
 
 Puzzle of Size 4x4
+
 ![ingame image](https://github.com/MaX-Lo/Tile_Puzzle/blob/master/ExampleImages/tp_puzzle.png)
 
 Victory screen
+
 ![ingame image](https://github.com/MaX-Lo/Tile_Puzzle/blob/master/ExampleImages/tp_solved.png)
 
 # Features
